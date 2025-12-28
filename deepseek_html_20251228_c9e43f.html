@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام معالجة الطلبيات</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- مرحلة 1: رفع الملف -->
+        <div id="upload-section" class="section active">
+            <div class="header">
+                <i class="fas fa-file-upload"></i>
+                <h1>رفع ملف الطلبيات</h1>
+            </div>
+            
+            <div class="upload-box" onclick="document.getElementById('file-input').click()">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>انقر لرفع ملف Excel</p>
+                <p class="hint">يجب أن يحتوي الملف على الأعمدة: الاسم، اللقب، رقم الهاتف، الولاية، البلدية</p>
+            </div>
+            
+            <input type="file" id="file-input" accept=".xlsx,.xls,.csv" hidden>
+            
+            <div id="upload-progress" class="progress" style="display: none;">
+                <div class="progress-bar"></div>
+            </div>
+            
+            <button id="process-btn" class="btn-primary" disabled>
+                <i class="fas fa-cogs"></i> معالجة الطلبيات
+            </button>
+        </div>
+
+        <!-- مرحلة 2: معالجة الطلبيات -->
+        <div id="processing-section" class="section" style="display: none;">
+            <div class="header">
+                <i class="fas fa-tasks"></i>
+                <h1>معالجة الطلبيات <span id="order-counter"></span></h1>
+            </div>
+            
+            <div class="order-card">
+                <div class="order-header">
+                    <h3>الطلبية الحالية</h3>
+                    <span class="order-id" id="current-order-id"></span>
+                </div>
+                
+                <div class="order-details">
+                    <div class="detail-item">
+                        <span class="label">الاسم:</span>
+                        <span class="value" id="order-first-name"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">اللقب:</span>
+                        <span class="value" id="order-last-name"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">رقم الهاتف:</span>
+                        <span class="value" id="order-phone"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">الولاية:</span>
+                        <span class="value" id="order-state"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">البلدية:</span>
+                        <span class="value" id="order-municipality"></span>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn-success" onclick="acceptOrder()">
+                        <i class="fas fa-check"></i> قبول
+                    </button>
+                    
+                    <button class="btn-warning" onclick="showDelayModal()">
+                        <i class="fas fa-clock"></i> تأجيل
+                    </button>
+                    
+                    <button class="btn-danger" onclick="showRejectModal()">
+                        <i class="fas fa-times"></i> رفض
+                    </button>
+                </div>
+            </div>
+            
+            <div class="stats">
+                <div class="stat-box">
+                    <i class="fas fa-list-alt"></i>
+                    <span id="total-orders">0</span>
+                    <small>إجمالي الطلبيات</small>
+                </div>
+                <div class="stat-box">
+                    <i class="fas fa-check-circle"></i>
+                    <span id="completed-orders">0</span>
+                    <small>مكتملة</small>
+                </div>
+                <div class="stat-box">
+                    <i class="fas fa-clock"></i>
+                    <span id="pending-orders">0</span>
+                    <small>معلقة</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- مرحلة 3: النتائج -->
+        <div id="results-section" class="section" style="display: none;">
+            <div class="header">
+                <i class="fas fa-flag-checkered"></i>
+                <h1>اكتملت المعالجة! 🎉</h1>
+            </div>
+            
+            <div class="success-message">
+                <i class="fas fa-check-circle"></i>
+                <p>تم معالجة جميع الطلبيات بنجاح</p>
+            </div>
+            
+            <div class="download-options">
+                <button class="btn-primary" onclick="downloadResults()">
+                    <i class="fas fa-file-excel"></i> تحميل ملف Excel النهائي
+                </button>
+                
+                <button class="btn-secondary" onclick="restartProcess()">
+                    <i class="fas fa-redo"></i> بدء عملية جديدة
+                </button>
+            </div>
+            
+            <div class="summary">
+                <h3>ملخص النتائج</h3>
+                <div id="results-summary"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة التأجيل -->
+    <div id="delay-modal" class="modal">
+        <div class="modal-content">
+            <h3><i class="fas fa-clock"></i> تأجيل الطلبية</h3>
+            <div class="form-group">
+                <label>تاريخ التأجيل:</label>
+                <input type="date" id="delay-date" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>ملاحظة:</label>
+                <textarea id="delay-notes" class="form-control" rows="3" 
+                          placeholder="أدخل سبب التأجيل..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-primary" onclick="delayOrder()">تأكيد التأجيل</button>
+                <button class="btn-secondary" onclick="closeModal('delay-modal')">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة الرفض -->
+    <div id="reject-modal" class="modal">
+        <div class="modal-content">
+            <h3><i class="fas fa-exclamation-triangle"></i> رفض الطلبية</h3>
+            <div class="alert alert-warning">
+                <i class="fas fa-info-circle"></i>
+                <span id="rejection-counter">الرفض الأول - سيتم الرفض النهائي بعد 3 مرات</span>
+            </div>
+            <div class="form-group">
+                <label>سبب الرفض:</label>
+                <textarea id="reject-notes" class="form-control" rows="3" 
+                          placeholder="أدخل سبب الرفض..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-danger" onclick="rejectOrder()">تأكيد الرفض</button>
+                <button class="btn-secondary" onclick="closeModal('reject-modal')">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
